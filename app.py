@@ -52,6 +52,10 @@ def do_logout():
     if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
 
+def check_authorization():
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/") 
 
 @app.route('/signup', methods=["GET", "POST"])
 def signup():
@@ -154,14 +158,11 @@ def users_show(user_id):
                 .all())
     return render_template('users/show.html', user=user, messages=messages)
 
-
 @app.route('/users/<int:user_id>/following')
 def show_following(user_id):
     """Show list of people this user is following."""
 
-    if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
+    check_authorization()
 
     user = User.query.get_or_404(user_id)
     return render_template('users/following.html', user=user)
@@ -171,9 +172,7 @@ def show_following(user_id):
 def users_followers(user_id):
     """Show list of followers of this user."""
 
-    if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
+    check_authorization()
 
     user = User.query.get_or_404(user_id)
     return render_template('users/followers.html', user=user)
@@ -183,9 +182,7 @@ def users_followers(user_id):
 def add_follow(follow_id):
     """Add a follow for the currently-logged-in user."""
 
-    if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
+    check_authorization()
 
     followed_user = User.query.get_or_404(follow_id)
     g.user.following.append(followed_user)
@@ -198,9 +195,7 @@ def add_follow(follow_id):
 def stop_following(follow_id):
     """Have currently-logged-in-user stop following this user."""
 
-    if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
+    check_authorization()
 
     followed_user = User.query.get(follow_id)
     g.user.following.remove(followed_user)
@@ -212,7 +207,8 @@ def stop_following(follow_id):
 @app.route('/users/profile', methods=["GET", "POST"])
 def profile():
     """Update profile for current user."""
-    raise
+    check_authorization()
+
     # IMPLEMENT THIS
 
 
@@ -220,9 +216,7 @@ def profile():
 def delete_user():
     """Delete user."""
 
-    if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
+    check_authorization()
 
     do_logout()
 
@@ -242,9 +236,7 @@ def messages_add():
     Show form if GET. If valid, update message and redirect to user page.
     """
 
-    if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
+    check_authorization()
 
     form = MessageForm()
 
@@ -270,9 +262,7 @@ def messages_show(message_id):
 def messages_destroy(message_id):
     """Delete a message."""
 
-    if not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
+    check_authorization()
 
     msg = Message.query.get(message_id)
     db.session.delete(msg)
