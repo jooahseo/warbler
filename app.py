@@ -197,7 +197,7 @@ def user_like_or_unlike(user_id, message_id):
         return redirect('/')    
     
     like_or_unlike(message_id)
-    return redirect(f'/users/{g.user.id}/likes')
+    return redirect(f'/users/{user_id}/likes')
 
 
 @app.route('/users/follow/<int:follow_id>', methods=['POST'])
@@ -255,16 +255,16 @@ def profile():
     # IMPLEMENT THIS
 
 
-@app.route('/users/delete', methods=["POST"])
-def delete_user():
+@app.route('/users/<int:user_id>/delete', methods=["POST"])
+def delete_user(user_id):
     """Delete user."""
 
     if check_authorization():
         return redirect('/')
 
     do_logout()
-
-    db.session.delete(g.user)
+    user = User.query.get_or_404(user_id)
+    db.session.delete(user)
     db.session.commit()
 
     return redirect("/signup")
