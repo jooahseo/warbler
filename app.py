@@ -5,7 +5,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
 from forms import UserAddForm, LoginForm, MessageForm, UserProfileForm
-from models import db, connect_db, User, Message
+from models import db, connect_db, User, Message, Follows, Likes
 
 CURR_USER_KEY = "curr_user"
 
@@ -181,6 +181,25 @@ def users_followers(user_id):
     return render_template('users/followers.html', user=user)
 
 
+@app.route('/users/<int:user_id>/likes')
+def user_likes(user_id):
+    """Show list of liked messages by this user."""
+    if check_authorization():
+        return redirect('/')    
+    user = User.query.get_or_404(user_id)
+    messages = user.likes
+    return render_template('/users/likes.html', user=user, messages = messages)
+
+@app.route('/users/<int:user_id>/likes/<int:message_id>', methods=["POST"])
+def user_like_or_unlike(user_id, message_id):
+    """unlike the messages on the user's like's page"""
+    if check_authorization():
+        return redirect('/')    
+    
+    like_or_unlike(message_id)
+    return redirect(f'/users/{g.user.id}/likes')
+
+
 @app.route('/users/follow/<int:follow_id>', methods=['POST'])
 def add_follow(follow_id):
     """Add a follow for the currently-logged-in user."""
@@ -252,14 +271,31 @@ def delete_user():
 
 ##############################################################################
 # User - Message (like) routes:
+def like_or_unlike(message_id):
+    user = User.query.get_or_404(g.user.id)
+    result = Likes.query.get((g.user.id,message_id))
+    if result:
+        db.session.delete(result)
+    else:
+        new_like = Likes(user_id=user.id, message_id=message_id)
+        db.session.add(new_like)
+    try:
+        db.session.commit()
+    except:
+        flash("something went wrong",'info')
 
 @app.route('/users/add_like/<int:message_id>', methods=["POST"])
-def like_message(message_id):
-    
+def like_message_on_main(message_id):
+    """check if user already liked the message: 
+        if Yes: unlike the message 
+        if No: liked the message
+    """
     if check_authorization():
         return redirect('/')
-
-    return f'liked message id {message_id}!'
+    
+    like_or_unlike(message_id)
+    
+    return redirect('/')
 
 ##############################################################################
 # Messages routes:
@@ -319,6 +355,7 @@ def homepage():
     - anon users: no messages
     - logged in: 100 most recent messages of followed_users
     """
+    # raise
     if g.user:
         messages = (Message
                     .query

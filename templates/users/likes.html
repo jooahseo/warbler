@@ -1,0 +1,51 @@
+{% extends 'users/detail.html' %}
+{% block user_details %}
+  <div class="col-sm-9">
+    <div class="row">
+
+      {% for msg in messages %}
+
+    <div class="col-lg-6 col-12">
+        <div class="card mb-2">
+        <div class="card-body">
+            <div class="row">
+                <a href="/messages/{{ msg.id  }}" class="message-link"/>
+                <div class="col-2">
+                    <a href="/users/{{ msg.user.id }}">
+                        <img src="{{ msg.user.image_url }}" alt="Image for {{ msg.user.username }}" class="timeline-image">
+                    </a>
+                </div>
+                <div class="col-10">
+                    <div class="message-area">
+                        <a href="/users/{{ msg.user.id }}" class="">@{{ msg.user.username }}</a>
+                        <p class="text-muted">{{ msg.timestamp.strftime('%d %B %Y') }}</p>
+                        <a href="/messages/{{ msg.id }}" id="message-text-link">
+                            <p> {{msg.text}} </p>
+                        </a>
+                        <form method="POST" action="/users/{{g.user.id}}/likes/{{msg.id}}" id="messages-form">
+                            {% if msg in g.user.likes%}
+                            <button class="btn btn-sm btn-priamry" style="color: #0F52BA">
+                            <i class="fa fa-thumbs-up"></i> 
+                            </button>
+                            {% else %}
+                            <button class="btn btn-sm" style="color:#C0C0C0">
+                            <i class="fa fa-thumbs-up"></i> 
+                            </button>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+        <div class="card-text">
+            
+        </div>
+    
+    </div>
+   </div>
+    {% endfor %}
+
+    </div>
+  </div>
+{% endblock %}

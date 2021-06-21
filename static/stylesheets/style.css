@@ -259,6 +259,11 @@ nav + .container {
   position: relative;
 }
 
+#message-text-link{
+  color:black;
+  text-decoration: none;
+}
+
 #messages .message-link {
   position: absolute;
   top: 0;
@@ -347,6 +352,15 @@ nav + .container {
   position: relative;
   z-index: 1;
 }
+.card-image-on-likes{
+  border: 3px solid #fff;
+  border-radius: 80px;
+  height: 70px;
+  width: 70px;
+  position: relative;
+  z-index: 1;
+}
+
 
 .card-link {
   display: inline-block;
