@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
-from forms import UserAddForm, LoginForm, MessageForm
+from forms import UserAddForm, LoginForm, MessageForm, UserProfileForm
 from models import db, connect_db, User, Message
 
 CURR_USER_KEY = "curr_user"
@@ -208,7 +208,23 @@ def stop_following(follow_id):
 def profile():
     """Update profile for current user."""
     check_authorization()
+    user = User.query.get_or_404(g.user.id)
+    form = UserProfileForm(obj=user)
 
+    if form.validate_on_submit():
+        user.username = form.username.data
+        user.email = form.email.data
+        user.location = form.location.data
+        if form.image_url.data:
+            user.image_url = form.image_url.data
+        if form.header_image_url.data:
+            user.header_image_url = form.header_image_url.data
+        user.bio = form.bio.data
+        db.session.commit()
+
+        flash('Profile updated!', 'success')
+        return redirect(f'/users/{user.id}')
+    return render_template('users/edit.html', form=form, user=user)
     # IMPLEMENT THIS
 
 
@@ -287,10 +303,14 @@ def homepage():
         messages = (Message
                     .query
                     .order_by(Message.timestamp.desc())
-                    .limit(100)
                     .all())
-
-        return render_template('home.html', messages=messages)
+        following_msg = []
+        for msg in messages: 
+            if msg.user in g.user.following: 
+                following_msg.append(msg)
+            if len(following_msg) == 100:
+                break
+        return render_template('home.html', messages=following_msg)
 
     else:
         return render_template('home-anon.html')
