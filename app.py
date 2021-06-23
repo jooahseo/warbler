@@ -5,7 +5,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 
 from forms import UserAddForm, LoginForm, MessageForm, UserProfileForm
-from models import db, connect_db, User, Message, Follows, Likes
+from models import db, connect_db, User, Message, Follows, Likes, bcrypt
 
 CURR_USER_KEY = "curr_user"
 
@@ -309,7 +309,7 @@ def messages_add():
 
     if check_authorization():
         return redirect('/')
-
+    
     form = MessageForm()
 
     if form.validate_on_submit():
@@ -338,6 +338,10 @@ def messages_destroy(message_id):
         return redirect('/')
 
     msg = Message.query.get(message_id)
+    if msg.user_id != g.user.id:
+        flash('Unauthorized Action', "danger")
+        return redirect('/')
+        
     db.session.delete(msg)
     db.session.commit()
 
@@ -355,7 +359,6 @@ def homepage():
     - anon users: no messages
     - logged in: 100 most recent messages of followed_users
     """
-    # raise
     if g.user:
         messages = (Message
                     .query
